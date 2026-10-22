@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Only latest for now: the first releases with the hooks API this mod uses (2.1.299)
+        # and with `validate --profile` (2.1.305) are too new to pin.
+        claude-code: [latest]
+    env:
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install Claude Code ${{ matrix.claude-code }}
+        run: |
+          npm install -g @anthropic-ai/claude-code@${{ matrix.claude-code }}
+          claude --version
+      - name: Validate
+        run: claude plugin validate . --profile directory
+      - name: Test
+        run: claude plugin test .
+      - name: Write type definitions
+        # Claude Code writes .claude-plugin/types/ when a session loads the mod. The placeholder key
+        # gets the session past the login check, and the API URL is a closed local port, so the
+        # session exits after loading without sending anything.
+        env:
+          CLAUDE_CODE_PLUGIN_DIR_WATCH: 1
+          CLAUDE_CODE_MAX_RETRIES: 0
+          ANTHROPIC_API_KEY: placeholder
+          ANTHROPIC_BASE_URL: http://127.0.0.1:9
+        run: |
+          claude --plugin-dir . -p ok < /dev/null || true
+          test -f .claude-plugin/types/tsconfig.json
+      - name: Type-check
+        run: npx -y -p typescript@5.6.3 tsc -p . --noEmit

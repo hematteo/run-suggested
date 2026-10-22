@@ -1,5 +1,7 @@
 # run-suggested
 
+[![CI](https://github.com/hematteo/run-suggested/actions/workflows/ci.yml/badge.svg)](https://github.com/hematteo/run-suggested/actions/workflows/ci.yml)
+
 A Claude Code mod that turns the shell commands Claude suggests into numbered shortcuts above the prompt. Press a number to run one; its output streams into the row, and goes to Claude with your next message.
 
 ```text
