@@ -1,0 +1,12 @@
+{
+  "name": "run-suggested",
+  "owner": { "name": "hematteo", "url": "https://github.com/hematteo" },
+  "metadata": { "description": "run-suggested, a Claude Code mod for running the commands Claude suggests" },
+  "plugins": [
+    {
+      "name": "run-suggested",
+      "source": "./",
+      "description": "Numbered shortcuts above the prompt for the shell commands Claude suggests"
+    }
+  ]
+}
