@@ -72,6 +72,21 @@ Only lines inside fenced code blocks tagged `sh`, `bash`, `zsh`, `shell` or `con
 
 To make that reliable, the mod adds a short section to Claude's system prompt asking it to put commands meant for you in `sh` blocks, one per line, and to use other fence languages for everything else.
 
+## How it works
+
+It is a single hooks module, `hooks/register.tsx`, on these surfaces:
+
+| Hook or call | What it does there |
+| --- | --- |
+| `turn.complete` | Reads the main loop's final answer, extracts the commands, and classifies each against `$.settings.read()`'s `permissions` |
+| `ui.render` on `AbovePrompt` | Draws the framed band: one `Button` per command with a digit `hotkey`, its status, and the tail of its output |
+| `$.process.spawn` | Runs a command in the user's login shell and streams its output into the row; leaving the stream stops it |
+| `prompt.submit` | Attaches what ran to the next prompt as `context`, then clears the band |
+| `prompt.compose` | Adds one system prompt section asking Claude to put commands for the user in `sh` fences |
+| `$.prompt.submit` | Sends the "ask Claude about this failure" question |
+
+State lives in `$.state` (`commands`, `armed`, `runs`); `types/index.d.ts` declares it. It makes no network requests.
+
 ## Options
 
 Set them in `/config`, or under `pluginConfigs` in `~/.claude/settings.json`:
